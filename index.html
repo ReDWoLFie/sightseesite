@@ -6,11 +6,9 @@
 <title>VINEWOOD &amp; VALLEY — Турагентство и шоу-бизнес</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bungee&family=Arvo:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
-  /* ===== Стили (без изменений, такие же как в предыдущей версии) ===== */
   :root{
     --cream:#F4E8D0;
     --gold:#F4B942;
@@ -362,23 +360,75 @@
   .team-card .role{ font-family:'Bungee',cursive; font-size:.62rem; letter-spacing:.08em; color:var(--orange); margin-bottom:10px; display:block; }
   .team-card p{ font-size:.85rem; opacity:.75; line-height:1.5; }
 
-  .schedule-wrap{ padding-bottom:70px; }
-  .schedule-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px; }
-  .day-card{
-    background:var(--paper); border:2px solid var(--ink); border-radius:6px;
-    padding:16px 14px; text-align:center;
+  /* КАЛЕНДАРЬ */
+  .calendar-grid{
+    display:grid;
+    grid-template-columns:repeat(7, 1fr);
+    gap:10px;
+    margin-bottom:30px;
+  }
+  .calendar-day{
+    background:var(--paper);
+    border:2px solid var(--ink);
+    border-radius:8px;
+    padding:14px 8px;
+    min-height:100px;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
     position:relative;
+    transition: .15s;
+    cursor:default;
   }
-  .day-card .dow{ font-family:'Bungee',cursive; font-size:.62rem; letter-spacing:.06em; opacity:.55; }
-  .day-card .date{ font-family:'Anton',sans-serif; font-size:1.6rem; margin:4px 0 8px; }
-  .day-card .status{
-    font-family:'Bungee',cursive; font-size:.6rem; letter-spacing:.04em;
-    padding:5px 8px; border-radius:3px; display:inline-block;
+  .calendar-day .day-number{
+    font-family:'Anton', sans-serif;
+    font-size:1.2rem;
+    color:var(--ink);
+    line-height:1.2;
   }
-  .day-card.open .status{ background:var(--orange); color:var(--paper); }
-  .day-card.few .status{ background:var(--gold); color:var(--ink); }
-  .day-card.full .status{ background:var(--ink); color:var(--paper); opacity:.6; }
-  .schedule-note{ text-align:center; margin-top:22px; font-size:.85rem; color:var(--paper); opacity:.75; font-style:italic; }
+  .calendar-day .day-weekday{
+    font-family:'Bungee',cursive;
+    font-size:.55rem;
+    letter-spacing:.06em;
+    opacity:.5;
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  .calendar-day .event-name{
+    font-family:'Arvo',serif;
+    font-size:.75rem;
+    font-weight:700;
+    color:var(--ink);
+    margin-top:4px;
+    line-height:1.2;
+    word-break:break-word;
+  }
+  .calendar-day .event-time{
+    font-family:'Arvo',serif;
+    font-size:.65rem;
+    opacity:.7;
+    margin-top:2px;
+  }
+  .calendar-day.has-event{
+    background:var(--gold);
+    border-color:var(--ink);
+  }
+  .calendar-day.has-event .day-number{ color:var(--noir); }
+  .calendar-day.has-event .event-name{ color:var(--noir); }
+  .calendar-day.has-event .event-time{ color:var(--noir); }
+  .calendar-day.today{
+    border-color:var(--pink);
+    box-shadow:0 0 0 3px var(--pink);
+  }
+  body.admin-mode .calendar-day:not(.empty){
+    cursor:pointer;
+  }
+  body.admin-mode .calendar-day:not(.empty):hover{
+    transform:scale(1.02);
+    box-shadow:0 4px 12px rgba(0,0,0,.2);
+  }
 
   .gallery-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:26px; padding-bottom:70px; }
   .polaroid{
@@ -417,7 +467,7 @@
   .cta-banner{ text-align:center; padding:80px 24px; }
   .cta-banner h2{ font-size:clamp(2rem,6vw,3.4rem); color:var(--paper); text-shadow:3px 3px 0 rgba(0,0,0,.35); margin-bottom:22px; }
 
-  /* Admin */
+  /* Admin styles */
   .admin-btn{
     font-family:'Bungee', cursive; font-size:.7rem; letter-spacing:.05em;
     background:transparent; color:var(--paper); border:2px solid var(--paper);
@@ -462,9 +512,6 @@
   .feature img.card-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.55; border-radius:0; margin:0; border:none; z-index:0; }
   .feature > *:not(img){ position:relative; z-index:1; }
 
-  .day-card .edit-toolbar{ top:-8px; right:-6px; }
-  .day-card .edit-toolbar button{ width:24px; height:24px; font-size:.7rem; }
-
   .field-row{ display:flex; gap:12px; }
   .field-row .field{ flex:1; }
   .modal-danger{
@@ -494,7 +541,6 @@
     color:var(--paper); opacity:.75; font-style:italic; line-height:1.6;
   }
 
-  /* Дополнительные стили для поля загрузки изображения */
   .img-upload-row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
   .img-upload-row .field{ flex:1; margin:0; }
   .img-upload-row .btn{ padding:8px 14px; font-size:.7rem; }
@@ -503,7 +549,6 @@
 </head>
 <body>
 
-  <!-- ====== HEADER ====== -->
   <header class="site-header">
     <a class="logo" href="#top">VINEWOOD <em>&amp;</em> VALLEY</a>
     <nav class="site-nav" id="siteNav">
@@ -511,7 +556,7 @@
         <a href="#routes">Туры</a>
         <a href="#showbiz">Шоу-бизнес</a>
         <a href="#team">Команда</a>
-        <a href="#schedule">Расписание</a>
+        <a href="#calendar">Календарь</a>
         <a href="#gallery">Галерея</a>
         <a href="#faq">Вопросы</a>
         <a href="#applications" id="navApps" style="display:none;">Заявки</a>
@@ -523,7 +568,6 @@
     </nav>
   </header>
 
-  <!-- ====== HERO ====== -->
   <section class="hero" id="top">
     <div class="sunburst"></div>
     <span class="eyebrow">Агентство полного цикла · Лос-Сантос</span>
@@ -536,7 +580,6 @@
     </div>
   </section>
 
-  <!-- ====== TICKER ====== -->
   <div class="ticker" aria-hidden="true">
     <div class="ticker-track">
       <span>ПОХОДЫ ПО ЧИЛИАДУ</span><span class="dot">✦</span>
@@ -558,19 +601,19 @@
     </div>
   </div>
 
-  <!-- ====== ЗАЯВКИ (админ-раздел) ====== -->
+  <!-- ЗАЯВКИ (админ-раздел) -->
   <section class="section" id="applications" style="display:none;">
     <div class="wrap">
       <div class="section-head">
         <span class="tag">Только для администратора</span>
         <h2>Входящие заявки</h2>
-        <p class="admin-note">Заявки хранятся в Firebase Realtime Database. При открытии на другом устройстве с тем же аккаунтом Firebase они будут доступны.</p>
+        <p class="admin-note">Заявки хранятся в Firebase Realtime Database.</p>
       </div>
       <div class="app-list" id="appList"></div>
     </div>
   </section>
 
-  <!-- ====== SPLIT ====== -->
+  <!-- SPLIT -->
   <section class="split">
     <div class="split-panel day">
       <span class="tag">Днём</span>
@@ -602,7 +645,7 @@
     </div>
   </section>
 
-  <!-- ====== КОМАНДА ====== -->
+  <!-- КОМАНДА -->
   <section class="section" id="team">
     <div class="wrap">
       <div class="section-head">
@@ -614,7 +657,7 @@
     </div>
   </section>
 
-  <!-- ====== ТУРЫ ====== -->
+  <!-- ТУРЫ -->
   <section class="section" id="routes">
     <div class="wrap">
       <div class="section-head">
@@ -626,7 +669,7 @@
     </div>
   </section>
 
-  <!-- ====== ШОУ-БИЗНЕС ====== -->
+  <!-- ШОУ-БИЗНЕС -->
   <section class="section" id="showbiz">
     <div class="wrap">
       <div class="section-head">
@@ -638,22 +681,19 @@
     </div>
   </section>
 
-  <!-- ====== РАСПИСАНИЕ ====== -->
-  <section class="section" id="schedule">
+  <!-- НОВЫЙ КАЛЕНДАРЬ -->
+  <section class="section" id="calendar">
     <div class="wrap">
       <div class="section-head">
         <span class="tag">Ближайшие две недели</span>
-        <h2>Расписание слотов</h2>
-        <p>Групповые туры и мероприятия идут по слотам — индивидуальные программы возможны в любой день по заявке.</p>
+        <h2>Календарь мероприятий</h2>
+        <p>Здесь отображаются запланированные события. Администратор может кликнуть на день, чтобы добавить или изменить мероприятие.</p>
       </div>
-      <div class="schedule-wrap">
-        <div class="schedule-grid" id="scheduleGrid"></div>
-        <p class="schedule-note">Расписание актуально на текущие две недели и обновляется каждый понедельник.</p>
-      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
     </div>
   </section>
 
-  <!-- ====== ГАЛЕРЕЯ ====== -->
+  <!-- ГАЛЕРЕЯ -->
   <section class="section" id="gallery">
     <div class="wrap">
       <div class="section-head">
@@ -666,7 +706,7 @@
     </div>
   </section>
 
-  <!-- ====== ХИТЫ СЕЗОНА ====== -->
+  <!-- ХИТЫ СЕЗОНА -->
   <section class="section">
     <div class="wrap">
       <div class="section-head">
@@ -677,7 +717,7 @@
     </div>
   </section>
 
-  <!-- ====== ШАГИ ====== -->
+  <!-- ШАГИ -->
   <section class="section">
     <div class="wrap">
       <div class="section-head">
@@ -692,7 +732,7 @@
     </div>
   </section>
 
-  <!-- ====== FAQ ====== -->
+  <!-- FAQ -->
   <section class="section" id="faq">
     <div class="wrap">
       <div class="section-head">
@@ -703,7 +743,7 @@
     </div>
   </section>
 
-  <!-- ====== CTA ====== -->
+  <!-- CTA -->
   <section class="cta-banner">
     <div class="wrap">
       <h2>Готовы начать?</h2>
@@ -711,7 +751,7 @@
     </div>
   </section>
 
-  <!-- ====== FOOTER ====== -->
+  <!-- FOOTER -->
   <footer>
     <h2>Занавес открыт</h2>
     <div class="contact">
@@ -722,7 +762,7 @@
     <div class="fine">VINEWOOD &amp; VALLEY — туристическое и шоу-бизнес агентство внутри ролеплей-проекта. Все названия вымышленные.</div>
   </footer>
 
-  <!-- ====== МОДАЛКА ЗАЯВКИ ====== -->
+  <!-- МОДАЛКА ЗАЯВКИ -->
   <div class="modal-overlay" id="applyOverlay">
     <div class="modal">
       <button type="button" class="modal-close" id="closeApply" aria-label="Закрыть">✕</button>
@@ -756,7 +796,7 @@
       <div id="applyReceipt" class="receipt">
         <span class="tag">Заявка готова</span>
         <h3>Билет оформлен</h3>
-        <p class="sub">Заявка сохранена в разделе «Заявки» для администратора. Дополнительно можно скопировать текст и отправить в Discord.</p>
+        <p class="sub">Заявка сохранена в разделе «Заявки» для администратора.</p>
         <div class="receipt-box" id="receiptText"></div>
         <div class="receipt-actions">
           <button type="button" class="btn btn-fill" id="copyReceipt">Скопировать текст</button>
@@ -766,7 +806,7 @@
     </div>
   </div>
 
-  <!-- ====== МОДАЛКА ВХОДА АДМИНА ====== -->
+  <!-- МОДАЛКА ВХОДА АДМИНА -->
   <div class="modal-overlay" id="adminOverlay">
     <div class="modal">
       <button type="button" class="modal-close" id="closeAdminLogin" aria-label="Закрыть">✕</button>
@@ -784,7 +824,7 @@
     </div>
   </div>
 
-  <!-- ====== МОДАЛКА РЕДАКТИРОВАНИЯ КАРТОЧКИ ====== -->
+  <!-- МОДАЛКА РЕДАКТИРОВАНИЯ КАРТОЧКИ -->
   <div class="modal-overlay" id="editOverlay">
     <div class="modal">
       <button type="button" class="modal-close" id="closeEdit" aria-label="Закрыть">✕</button>
@@ -807,7 +847,6 @@
           <label id="ef-price-label">Цена</label>
           <input type="text" id="ef-price">
         </div>
-        <!-- Поле для изображения с загрузкой -->
         <div class="field" id="ef-img-wrap">
           <label>Картинка (URL или загрузите файл)</label>
           <div class="img-upload-row">
@@ -823,40 +862,31 @@
     </div>
   </div>
 
-  <!-- ====== МОДАЛКА РЕДАКТИРОВАНИЯ РАСПИСАНИЯ ====== -->
-  <div class="modal-overlay" id="schedOverlay">
+  <!-- МОДАЛКА РЕДАКТИРОВАНИЯ ДНЯ КАЛЕНДАРЯ -->
+  <div class="modal-overlay" id="eventEditOverlay">
     <div class="modal">
-      <button type="button" class="modal-close" id="closeSched" aria-label="Закрыть">✕</button>
-      <span class="tag">Слот расписания</span>
-      <h3>Редактировать день</h3>
-      <form id="schedForm">
-        <div class="field-row">
-          <div class="field"><label>День недели</label><input type="text" id="sf-dow" maxlength="4"></div>
-          <div class="field"><label>Число</label><input type="text" id="sf-date" maxlength="3"></div>
+      <button type="button" class="modal-close" id="closeEventEdit" aria-label="Закрыть">✕</button>
+      <span class="tag">Редактирование дня</span>
+      <h3 id="eventEditTitle">Мероприятие</h3>
+      <form id="eventEditForm">
+        <div class="field">
+          <label>Название мероприятия</label>
+          <input type="text" id="ee-event" placeholder="Например: Поход в горы">
         </div>
         <div class="field">
-          <label>Статус (текст)</label>
-          <input type="text" id="sf-status" placeholder="напр. Тур: Чилиад">
-        </div>
-        <div class="field">
-          <label>Доступность</label>
-          <div class="chip-group">
-            <label class="chip"><input type="radio" name="sf-cls" value="open" checked><span>Свободно</span></label>
-            <label class="chip"><input type="radio" name="sf-cls" value="few"><span>Мало мест</span></label>
-            <label class="chip"><input type="radio" name="sf-cls" value="full"><span>Занято</span></label>
-          </div>
+          <label>Время (например, 18:30)</label>
+          <input type="text" id="ee-time" placeholder="ЧЧ:ММ">
         </div>
         <button type="submit" class="modal-submit">Сохранить</button>
+        <button type="button" class="modal-danger" id="ee-delete-btn">Удалить событие</button>
       </form>
     </div>
   </div>
 
-  <!-- ====== SKRIPT ====== -->
   <script>
     (function(){
 
       // ==================== НАСТРОЙКИ FIREBASE ====================
-      // ⚠️ ЗАМЕНИТЕ НА ВАШ КОНФИГ ИЗ FIREBASE CONSOLE
       const firebaseConfig = {
         apiKey: "AIzaSyBWGdg0lpN5NghrXfcH1PnNjmSWd3tl3sc",
         authDomain: "sightseesite-cd9ea.firebaseapp.com",
@@ -868,18 +898,15 @@
       };
 
       // ==================== НАСТРОЙКИ IMGBB ====================
-      // ⚠️ ЗАМЕНИТЕ НА ВАШ API-КЛЮЧ С IMGBB
       const IMGBB_API_KEY = '25735af97184f11282481b113825789a';
-
-      // =========================================================
 
       let DATA = null;
       let applications = [];
       let isAdmin = sessionStorage.getItem('vw_admin') === '1';
-      let currentSection = null, currentId = null, currentSchedId = null;
+      let currentSection = null, currentId = null;
       let firebaseReady = false;
+      let editingDate = null;
 
-      // Инициализация Firebase
       try {
         firebase.initializeApp(firebaseConfig);
         firebaseReady = true;
@@ -894,20 +921,32 @@
         const db = firebase.database();
         db.ref('data').once('value').then(snap => {
           const val = snap.val() || {};
-          // Приводим объекты к массивам, добавляя id из ключа
           const sections = ['tours','showbiz','team','hits','gallery','faq','schedule'];
           sections.forEach(key => {
             if(val[key]){
               const obj = val[key];
-              if(typeof obj === 'object' && !Array.isArray(obj)){
+              // schedule - объект { date: { event, time } }
+              if(key === 'schedule' && typeof obj === 'object' && !Array.isArray(obj)){
+                val[key] = obj;
+              } else if(key !== 'schedule' && typeof obj === 'object' && !Array.isArray(obj)){
                 val[key] = Object.keys(obj).map(k => ({ id: k, ...obj[k] }));
+              } else if(key === 'schedule' && Array.isArray(obj)){
+                // если вдруг массив - переделываем в объект
+                const newObj = {};
+                obj.forEach(item => {
+                  if(item.date){
+                    newObj[item.date] = { event: item.status || '', time: item.time || '' };
+                  }
+                });
+                val[key] = newObj;
+                db.ref('data/schedule').set(newObj);
               }
             } else {
-              val[key] = [];
+              if(key === 'schedule') val[key] = {};
+              else val[key] = [];
             }
           });
           DATA = val;
-          // Загружаем заявки
           db.ref('applications').once('value').then(snap2 => {
             const apps = snap2.val() || {};
             applications = Object.keys(apps).map(k => ({ id: k, ...apps[k] }));
@@ -915,7 +954,6 @@
           }).catch(err => { console.warn('Ошибка загрузки заявок', err); callback && callback(); });
         }).catch(err => {
           console.warn('Ошибка загрузки данных', err);
-          // Если ошибка, используем дефолтные данные
           DATA = getDefaultData();
           applications = [];
           callback && callback();
@@ -928,13 +966,14 @@
         const updates = {};
         const sections = ['tours','showbiz','team','hits','gallery','faq','schedule'];
         sections.forEach(key => {
-          // Преобразуем массив в объект с ключами id
           if(DATA[key]){
-            const obj = {};
-            DATA[key].forEach(item => {
-              if(item.id) obj[item.id] = item;
-            });
-            updates['data/'+key] = obj;
+            if(key === 'schedule'){
+              updates['data/'+key] = DATA[key];
+            } else {
+              const obj = {};
+              DATA[key].forEach(item => { if(item.id) obj[item.id] = item; });
+              updates['data/'+key] = obj;
+            }
           }
         });
         db.ref().update(updates).catch(err => console.warn('Ошибка сохранения данных', err));
@@ -944,9 +983,7 @@
         if(!firebaseReady) return;
         const db = firebase.database();
         const obj = {};
-        applications.forEach(app => {
-          if(app.id) obj[app.id] = app;
-        });
+        applications.forEach(app => { if(app.id) obj[app.id] = app; });
         db.ref('applications').set(obj).catch(err => console.warn('Ошибка сохранения заявок', err));
       }
 
@@ -997,22 +1034,7 @@
             {id:'f4', title:'Какой минимальный состав группы?', text:'Пешие и водные туры — от 1 человека. Джиппинг, эндуро и баржа — от 3 человек. Мероприятия под ключ обсуждаются индивидуально под площадку.'},
             {id:'f5', title:'Можно ли забронировать индивидуальную дату вне расписания?', text:'Да, помимо групповых слотов мы берём индивидуальные и корпоративные заявки на любую свободную дату — уточняйте через форму заявки.'}
           ],
-          schedule: [
-            {id:'d1', dow:'Чт', date:'2', status:'Свободно', cls:'open'},
-            {id:'d2', dow:'Пт', date:'3', status:'Тур: Чилиад', cls:'full'},
-            {id:'d3', dow:'Сб', date:'4', status:'Мало мест', cls:'few'},
-            {id:'d4', dow:'Вс', date:'5', status:'Свободно', cls:'open'},
-            {id:'d5', dow:'Пн', date:'6', status:'Меро: вечеринка', cls:'full'},
-            {id:'d6', dow:'Вт', date:'7', status:'Свободно', cls:'open'},
-            {id:'d7', dow:'Ср', date:'8', status:'Тур: дайвинг', cls:'full'},
-            {id:'d8', dow:'Чт', date:'9', status:'Свободно', cls:'open'},
-            {id:'d9', dow:'Пт', date:'10', status:'Тур: джиппинг', cls:'full'},
-            {id:'d10', dow:'Сб', date:'11', status:'Мало мест', cls:'few'},
-            {id:'d11', dow:'Вс', date:'12', status:'Меро: корпоратив', cls:'full'},
-            {id:'d12', dow:'Пн', date:'13', status:'Свободно', cls:'open'},
-            {id:'d13', dow:'Вт', date:'14', status:'Свободно', cls:'open'},
-            {id:'d14', dow:'Ср', date:'15', status:'Тур: VIP Вайнвуд', cls:'full'}
-          ]
+          schedule: {}
         };
       }
 
@@ -1025,7 +1047,6 @@
       function openOverlayEl(el){ el.classList.add('open'); document.body.style.overflow = 'hidden'; }
       function closeOverlayEl(el){ el.classList.remove('open'); document.body.style.overflow = ''; }
 
-      // ==================== ЗАГРУЗКА ИЗОБРАЖЕНИЙ НА IMGBB ====================
       function uploadImageToImgBB(file, callback){
         if(!IMGBB_API_KEY || IMGBB_API_KEY === 'ВАШ-КЛЮЧ-IMGBB'){
           alert('Сначала укажите IMGBB_API_KEY в коде.');
@@ -1060,6 +1081,7 @@
       }
 
       function renderTours(){
+        if(!DATA || !DATA.tours) return;
         var html = DATA.tours.map(function(item){
           var imgHtml = item.img ? '<img class="card-img" src="'+esc(item.img)+'" alt="">' : '';
           return '<div class="card-wrap"><div class="card">'+
@@ -1072,6 +1094,7 @@
       }
 
       function renderShowbiz(){
+        if(!DATA || !DATA.showbiz) return;
         var html = DATA.showbiz.map(function(item){
           var imgHtml = item.img ? '<img class="card-img" src="'+esc(item.img)+'" alt="">' : '';
           return '<div class="card-wrap"><div class="card show">'+
@@ -1084,6 +1107,7 @@
       }
 
       function renderTeam(){
+        if(!DATA || !DATA.team) return;
         var html = DATA.team.map(function(item, idx){
           var tc = [{bg:'var(--gold)', fg:'var(--ink)'},{bg:'var(--orange)', fg:'var(--paper)'},{bg:'var(--pink)', fg:'var(--noir)'},{bg:'var(--purple)', fg:'var(--paper)'}][idx % 4];
           var initials = (item.title||'').split(' ').filter(Boolean).map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
@@ -1099,6 +1123,7 @@
       }
 
       function renderHits(){
+        if(!DATA || !DATA.hits) return;
         var html = DATA.hits.map(function(item, idx){
           var cls = ['f1','f2','f3','f4'][idx % 4];
           var imgHtml = item.img ? '<img class="card-img" src="'+esc(item.img)+'" alt="">' : '';
@@ -1110,6 +1135,7 @@
       }
 
       function renderGallery(){
+        if(!DATA || !DATA.gallery) return;
         var html = DATA.gallery.map(function(item, idx){
           var color = ['var(--gold)','var(--orange)','var(--purple)','var(--pink)','var(--navy)','var(--rose)'][idx % 6];
           var inner;
@@ -1123,6 +1149,7 @@
       }
 
       function renderFaq(){
+        if(!DATA || !DATA.faq) return;
         var html = DATA.faq.map(function(item){
           return '<div class="card-wrap"><details class="faq-item"><summary>'+esc(item.title)+'</summary>'+
             '<p class="faq-a">'+esc(item.text)+'</p></details>'+
@@ -1131,47 +1158,46 @@
         document.getElementById('faqList').innerHTML = html;
       }
 
-      function renderSchedule(){
-        var html = DATA.schedule.map(function(item){
-          return '<div class="day-card '+item.cls+'">'+
-            '<div class="dow">'+esc(item.dow)+'</div><div class="date">'+esc(item.date)+'</div>'+
-            '<span class="status">'+esc(item.status)+'</span>'+
-            '<div class="edit-toolbar"><button type="button" class="edit-btn" onclick="VW.openEditSchedule(\''+item.id+'\')">✎</button></div>'+
-          '</div>';
-        }).join('');
-        document.getElementById('scheduleGrid').innerHTML = html;
-      }
-
-      function renderAll(){
-        renderTours(); renderShowbiz(); renderTeam(); renderHits(); renderGallery(); renderFaq(); renderSchedule();
-      }
-
-      function renderSection(section){
-        switch(section){
-          case 'tours': renderTours(); break;
-          case 'showbiz': renderShowbiz(); break;
-          case 'team': renderTeam(); break;
-          case 'hits': renderHits(); break;
-          case 'gallery': renderGallery(); break;
-          case 'faq': renderFaq(); break;
+      // ===== НОВАЯ ФУНКЦИЯ РЕНДЕРИНГА КАЛЕНДАРЯ (от сегодня) =====
+      function renderCalendar(){
+        const grid = document.getElementById('calendarGrid');
+        if(!grid) return;
+        if(!DATA || !DATA.schedule) return;
+        const now = new Date();
+        const days = [];
+        for(let i=0; i<14; i++){
+          const d = new Date(now);
+          d.setDate(now.getDate() + i);
+          const dateStr = d.toISOString().slice(0,10);
+          const dow = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][d.getDay()];
+          const dayNum = d.getDate();
+          const event = DATA.schedule[dateStr] ? DATA.schedule[dateStr] : null;
+          days.push({ dateStr, dow, dayNum, event, isToday: i === 0 });
         }
-      }
+        let html = '';
+        days.forEach(day => {
+          const hasEvent = day.event && day.event.event && day.event.event.trim() !== '';
+          const eventName = hasEvent ? esc(day.event.event) : '';
+          const eventTime = hasEvent && day.event.time ? esc(day.event.time) : '';
+          const classes = 'calendar-day' + (hasEvent ? ' has-event' : '') + (day.isToday ? ' today' : '');
+          html += `<div class="${classes}" data-date="${day.dateStr}">
+            <div class="day-weekday">${day.dow}</div>
+            <div class="day-number">${day.dayNum}</div>
+            ${hasEvent ? `<div class="event-name">${eventName}</div>` : ''}
+            ${hasEvent && eventTime ? `<div class="event-time">${eventTime}</div>` : ''}
+          </div>`;
+        });
+        grid.innerHTML = html;
 
-      function renderApplications(){
-        var list = document.getElementById('appList');
-        if(!applications.length){
-          list.innerHTML = '<div class="app-empty">Пока нет новых заявок.</div>';
-          return;
+        // Обработчики клика для админа
+        if(isAdmin){
+          grid.querySelectorAll('.calendar-day').forEach(el => {
+            el.addEventListener('click', function(){
+              const date = this.dataset.date;
+              if(date) openEventEdit(date);
+            });
+          });
         }
-        list.innerHTML = applications.map(function(a){
-          return '<div class="app-item">'+
-            '<button type="button" class="app-del" onclick="VW.deleteApp(\''+a.id+'\')">✕</button>'+
-            '<div class="app-top"><span class="app-dir">'+esc(a.direction)+' · '+esc(a.format)+'</span><span class="app-time">'+esc(a.time)+'</span></div>'+
-            '<div class="app-name">'+esc(a.name)+'</div>'+
-            '<div class="app-line">Контакт: '+esc(a.contact)+'</div>'+
-            (a.comment ? '<div class="app-comment">«'+esc(a.comment)+'»</div>' : '')+
-          '</div>';
-        }).join('');
       }
 
       // ==================== УПРАВЛЕНИЕ РЕДАКТИРОВАНИЕМ ====================
@@ -1179,6 +1205,7 @@
         document.body.classList.toggle('admin-mode', on);
         document.getElementById('applications').style.display = on ? 'block' : 'none';
         document.getElementById('navApps').style.display = on ? 'inline' : 'none';
+        renderCalendar();
       }
 
       var FIELD_CONFIG = {
@@ -1193,6 +1220,8 @@
       function toggleField(id, show){ document.getElementById(id).style.display = show ? 'block' : 'none'; }
 
       function openEdit(section, id){
+        if(!isAdmin){ alert('Войдите как администратор.'); return; }
+        if(!DATA || !DATA[section]) return;
         currentSection = section; currentId = id;
         var cfg = FIELD_CONFIG[section];
         var item = id ? DATA[section].find(function(x){ return x.id === id; }) : null;
@@ -1284,32 +1313,49 @@
       });
       document.getElementById('closeEdit').addEventListener('click', function(){ closeOverlayEl(document.getElementById('editOverlay')); });
 
-      // ==================== РЕДАКТИРОВАНИЕ РАСПИСАНИЯ ====================
-      function openEditSchedule(id){
-        var item = DATA.schedule.find(function(x){ return x.id === id; });
-        if(!item) return;
-        currentSchedId = id;
-        document.getElementById('sf-dow').value = item.dow;
-        document.getElementById('sf-date').value = item.date;
-        document.getElementById('sf-status').value = item.status;
-        var radio = document.querySelector('input[name="sf-cls"][value="'+item.cls+'"]');
-        if(radio) radio.checked = true;
-        openOverlayEl(document.getElementById('schedOverlay'));
+      // ==================== РЕДАКТИРОВАНИЕ КАЛЕНДАРЯ ====================
+      function openEventEdit(dateStr){
+        if(!isAdmin) return;
+        editingDate = dateStr;
+        const eventData = DATA.schedule && DATA.schedule[dateStr] ? DATA.schedule[dateStr] : { event: '', time: '' };
+        document.getElementById('eventEditTitle').textContent = 'Мероприятие на ' + dateStr;
+        document.getElementById('ee-event').value = eventData.event || '';
+        document.getElementById('ee-time').value = eventData.time || '';
+        openOverlayEl(document.getElementById('eventEditOverlay'));
       }
 
-      document.getElementById('schedForm').addEventListener('submit', function(e){
+      document.getElementById('eventEditForm').addEventListener('submit', function(e){
         e.preventDefault();
-        var item = DATA.schedule.find(function(x){ return x.id === currentSchedId; });
-        if(!item) return;
-        item.dow = document.getElementById('sf-dow').value.trim();
-        item.date = document.getElementById('sf-date').value.trim();
-        item.status = document.getElementById('sf-status').value.trim();
-        item.cls = document.querySelector('input[name="sf-cls"]:checked').value;
+        if(!editingDate) return;
+        const event = document.getElementById('ee-event').value.trim();
+        const time = document.getElementById('ee-time').value.trim();
+        if(!event && !time){
+          if(DATA.schedule[editingDate]){
+            delete DATA.schedule[editingDate];
+          }
+        } else {
+          DATA.schedule[editingDate] = { event: event, time: time };
+        }
         saveDataToFirebase();
-        renderSchedule();
-        closeOverlayEl(document.getElementById('schedOverlay'));
+        renderCalendar();
+        closeOverlayEl(document.getElementById('eventEditOverlay'));
       });
-      document.getElementById('closeSched').addEventListener('click', function(){ closeOverlayEl(document.getElementById('schedOverlay')); });
+
+      document.getElementById('ee-delete-btn').addEventListener('click', function(){
+        if(!editingDate) return;
+        if(confirm('Удалить событие на этот день?')){
+          if(DATA.schedule[editingDate]){
+            delete DATA.schedule[editingDate];
+            saveDataToFirebase();
+            renderCalendar();
+            closeOverlayEl(document.getElementById('eventEditOverlay'));
+          }
+        }
+      });
+
+      document.getElementById('closeEventEdit').addEventListener('click', function(){
+        closeOverlayEl(document.getElementById('eventEditOverlay'));
+      });
 
       // ==================== АДМИН ВХОД ====================
       document.getElementById('openAdminLogin').addEventListener('click', function(){
@@ -1354,12 +1400,12 @@
       openBtns.forEach(function(btn){ btn.addEventListener('click', function(){ openOverlayEl(overlay); }); });
       closeBtn.addEventListener('click', function(){ closeOverlayEl(overlay); });
 
-      [overlay, document.getElementById('adminOverlay'), document.getElementById('editOverlay'), document.getElementById('schedOverlay')].forEach(function(ov){
+      [overlay, document.getElementById('adminOverlay'), document.getElementById('editOverlay'), document.getElementById('eventEditOverlay')].forEach(function(ov){
         ov.addEventListener('click', function(e){ if(e.target === ov) closeOverlayEl(ov); });
       });
       document.addEventListener('keydown', function(e){
         if(e.key !== 'Escape') return;
-        [overlay, document.getElementById('adminOverlay'), document.getElementById('editOverlay'), document.getElementById('schedOverlay')].forEach(closeOverlayEl);
+        [overlay, document.getElementById('adminOverlay'), document.getElementById('editOverlay'), document.getElementById('eventEditOverlay')].forEach(closeOverlayEl);
       });
 
       var navToggle = document.getElementById('navToggle');
@@ -1421,12 +1467,50 @@
         });
       });
 
+      // ==================== ОБЩИЙ РЕНДЕРИНГ ====================
+      function renderAll(){
+        renderTours();
+        renderShowbiz();
+        renderTeam();
+        renderHits();
+        renderGallery();
+        renderFaq();
+        renderCalendar();
+      }
+
+      function renderSection(section){
+        switch(section){
+          case 'tours': renderTours(); break;
+          case 'showbiz': renderShowbiz(); break;
+          case 'team': renderTeam(); break;
+          case 'hits': renderHits(); break;
+          case 'gallery': renderGallery(); break;
+          case 'faq': renderFaq(); break;
+        }
+      }
+
+      function renderApplications(){
+        var list = document.getElementById('appList');
+        if(!applications.length){
+          list.innerHTML = '<div class="app-empty">Пока нет новых заявок.</div>';
+          return;
+        }
+        list.innerHTML = applications.map(function(a){
+          return '<div class="app-item">'+
+            '<button type="button" class="app-del" onclick="VW.deleteApp(\''+a.id+'\')">✕</button>'+
+            '<div class="app-top"><span class="app-dir">'+esc(a.direction)+' · '+esc(a.format)+'</span><span class="app-time">'+esc(a.time)+'</span></div>'+
+            '<div class="app-name">'+esc(a.name)+'</div>'+
+            '<div class="app-line">Контакт: '+esc(a.contact)+'</div>'+
+            (a.comment ? '<div class="app-comment">«'+esc(a.comment)+'»</div>' : '')+
+          '</div>';
+        }).join('');
+      }
+
       // ==================== ИНИЦИАЛИЗАЦИЯ ====================
-      window.VW = { openEdit: openEdit, deleteItem: deleteItem, openEditSchedule: openEditSchedule, deleteApp: deleteApp };
+      window.VW = { openEdit: openEdit, deleteItem: deleteItem, deleteApp: deleteApp };
 
       function init(){
         if(!firebaseReady){
-          // Если Firebase не доступен, используем локальные данные
           DATA = getDefaultData();
           applications = [];
           if(isAdmin){ setAdminUI(true); renderApplications(); }
